@@ -2382,7 +2382,7 @@ end
 
 Window:Line()
 
-local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"})
+local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"}) do
 
 
 --[[
