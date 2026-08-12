@@ -210,6 +210,7 @@ local StackSphere = nil
 local AutoRematchRunning = false
 
 local AutoMedicRunning = false
+local AutoBountyRunning = false
 
 local AllModifiers = {
     "HiddenEnemies", "Glass", "ExplodingEnemies", "Limitation", 
@@ -275,6 +276,8 @@ local DefaultSettings = {
 
     AutoMedic = false,
     Towerslot = {},
+
+    AutoBounty = false,
 }
 
 local TimeScaleValues = {0.5, 1, 1.5, 2}
@@ -1475,6 +1478,15 @@ local Automation = Window:Tab({Title = "Automation", Icon = "bot"}) do
         Multi = true,
         Callback = function(choice)
             SetSetting("Towerslot", choice)
+        end
+    })
+
+    Automation:Toggle({
+        Title = "Auto Bounty",
+        Desc = "Target The Highest HP Enemy / boss",
+        Value = Globals.AutoBounty,
+        Callback = function(v)
+            SetSetting("AutoBounty", v)
         end
     })
 
@@ -4779,6 +4791,7 @@ end
 
 --== NEW STUFF 
 local AutoMedicLib = nil
+local AutoBountyLib = nil
 
 local function StopMedicChain()
     if AutoMedicLib then
@@ -4786,6 +4799,13 @@ local function StopMedicChain()
         AutoMedicLib.Chain("Universal", {}, false)
     end
     AutoMedicRunning = false
+end
+
+local function StopBountyChain()
+    if AutoBountyLib then
+        AutoBountyLib.Bounty("Off")
+    end
+    AutoBountyRunning = false
 end
 
 local function StartMedicChain()
@@ -4840,6 +4860,64 @@ local function StartMedicChain()
             end
         end
         AutoMedicLib.Chain("Universal", Towerslot, true)
+    end)
+end
+
+local function StartBountyChain()
+    AutoBountyRunning = true
+
+    task.spawn(function()
+        local myKingpins = {}
+
+        repeat
+            myKingpins = {}
+            local towersFolder = game:GetService("Workspace"):FindFirstChild("Towers")
+            
+            if towersFolder then
+                for _, tower in ipairs(towersFolder:GetChildren()) do
+                    local replicator = tower:FindFirstChild("TowerReplicator")
+                    if replicator then
+                        local ownerId = replicator:GetAttribute("OwnerId")
+                        local ownerName = replicator:GetAttribute("OwnerName")
+                        local towerName = replicator:GetAttribute("Name")
+                        local pathAttr = replicator:GetAttribute("Path")
+
+                        local localPlayer = game:GetService("Players").LocalPlayer
+                        local isOwner = (ownerId and ownerId == localPlayer.UserId) or (ownerName and ownerName == localPlayer.Name)
+
+                        if isOwner and towerName and string.lower(towerName) == "evolvedkingpin" and pathAttr == 1 then
+                            table.insert(myKingpins, tower)
+                        end
+                    end
+                end
+            end
+            
+            if #myKingpins == 0 then
+                task.wait(1)
+            end
+        until #myKingpins > 0 or not Globals.AutoBounty
+
+        if not Globals.AutoBounty then
+            AutoBountyRunning = false
+            return
+        end
+
+        if not AutoBountyLib then
+          local success, loadedLib = pcall(function()
+        local url = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/AutoAbilities/AutoBounty.lua"
+        return loadstring(game:HttpGet(url))()
+    end)
+
+            if success and loadedLib then
+                AutoBountyLib = loadedLib
+            else
+                warn("[AutoBounty]: Failed to load AutoBounty.lua library.")
+                AutoBountyRunning = false
+                return
+            end
+        end
+
+        AutoBountyLib.Bounty("Universal")
     end)
 end
 
