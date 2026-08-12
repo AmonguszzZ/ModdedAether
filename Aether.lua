@@ -2382,31 +2382,8 @@ end
 
 Window:Line()
 
-local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"}) do
+local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"})
 
-    -- Player Statistics Section
-Strategies:Section({Title = "Player Statistics"})
-
-local LevelLabel = Strategies:Label({Title = "Current Level: loading...", Desc = "Tracks your current account level"})
-local CoinsLabel = Strategies:Label({Title = "Current Coins: loading...", Desc = "Tracks total currency earned"})
-local GemsLabel = Strategies:Label({Title = "Current Gems: loading...", Desc = "Tracks Hardcore gems balance"})
-local TargetLabel = Strategies:Label({Title = "Target: ...", Desc = "Current progression goal"})
-local LocationLabel = Strategies:Label({Title = "Location: ...", Desc = "Current map or lobby status"})
-local StatusLabel = Strategies:Label({Title = "Status: Grinding...", Desc = "Current script state"})
-local RuntimeLabel = Strategies:Label({Title = "Running Time: 00:00:00", Desc = "Total active session duration"})
-Strategies:Toggle({
-    Title = "Auto Progress:",
-    Desc = "Automatic LMAO",
-    Value = Globals.Easy,
-    Callback = function(v)
-        Globals.Easy = v
-        SetSetting("Easy", v)
-
-        if v then
-            StartAutoProgress()
-        end
-    end
-})
 
 --[[
     Strategies:Toggle({
@@ -4954,57 +4931,6 @@ function TDS:Rejoin()
 SmartTeleportToLobby()
 end
 
-function StartAutoProgress()
-    if not Globals.Easy then return end
-    
-    task.spawn(function()
-        local startTime = os.time()
-        local player = game:GetService("Players").LocalPlayer
-        
-        while Globals.Easy do
-            -- Dynamic stats tracking loop directly fetching from LocalPlayer values/stats
-            pcall(function()
-                -- Adjust these paths (e.g., .leaderstats or .Data) depending on where TDS stores them
-                if player:FindFirstChild("leaderstats") then
-                    local leaderstats = player.leaderstats
-                    if leaderstats:FindFirstChild("Level") then
-                        LevelLabel:SetTitle("Current Level: " .. tostring(leaderstats.Level.Value))
-                    end
-                    if leaderstats:FindFirstChild("Coins") then
-                        CoinsLabel:SetTitle("Current Coins: " .. tostring(leaderstats.Coins.Value))
-                    end
-                    if leaderstats:FindFirstChild("Gems") then
-                        GemsLabel:SetTitle("Current Gems: " .. tostring(leaderstats.Gems.Value))
-                    end
-                elseif player:FindFirstChild("Data") then
-                    local data = player.Data
-                    if data:FindFirstChild("Level") then
-                        LevelLabel:SetTitle("Current Level: " .. tostring(data.Level.Value))
-                    end
-                    if data:FindFirstChild("Coins") then
-                        CoinsLabel:SetTitle("Current Coins: " .. tostring(data.Coins.Value))
-                    end
-                    if data:FindFirstChild("Gems") then
-                        GemsLabel:SetTitle("Current Gems: " .. tostring(data.Gems.Value))
-                    end
-                end
-            end)
-            
-            -- Runtime counter update
-            local elapsed = os.time() - startTime
-            local hours = math.floor(elapsed / 3600)
-            local minutes = math.floor((elapsed % 3600) / 60)
-            local seconds = elapsed % 60
-            
-            RuntimeLabel:SetTitle(string.format("Running Time: %02d:%02d:%02d", hours, minutes, seconds))
-            
-            -- Your auto-progress code here
-            
-            task.wait(1)
-        end
-    end)
-end
-
 task.spawn(function()
     while true do
         if Globals.AutoPickups and not AutoPickupsRunning then
@@ -5076,13 +5002,19 @@ task.spawn(function()
         end
 
         if Globals.Easy and not EasyModeRunning then
-            StartAutoProgress()
+           -- StartAutoProgress()
         end
 
         if Globals.AutoMedic and not AutoMedicRunning then
             StartMedicChain()
         elseif not Globals.AutoMedic and AutoMedicRunning then
             StopMedicChain()
+        end
+
+        if Globals.AutoBounty and not AutoBountyRunning then
+            StartBountyChain()
+        elseif not Globals.AutoBounty and AutoBountyRunning then
+            StopBountyChain()
         end
 
         task.wait(1)
