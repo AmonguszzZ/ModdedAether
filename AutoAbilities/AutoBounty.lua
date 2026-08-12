@@ -1,6 +1,3 @@
--- ==========================================
--- AutoBounty.lua Library
--- ==========================================
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -14,14 +11,11 @@ local RemoteFunction = ReplicatedStorage:FindFirstChild("RemoteFunction")
 
 local AutoBounty = {}
 
--- Active thread tracker
 local activeBountyThread = nil
 
--- Persistent enemy cache for tracking wave data
 local enemyCache = {}
 local lastEnemySpawnTime = 0
 
--- Helper: Get Difficulty/Mode from ReplicatedStorage
 local function getDifficulty()
     local state = ReplicatedStorage:FindFirstChild("State")
     if not state then return nil end
@@ -36,7 +30,6 @@ local function getDifficulty()
     end
 end
 
--- Helper: Read Current Wave from GameStateReplicator
 local function getCurrentWave()
     local stateReplicators = ReplicatedStorage:FindFirstChild("StateReplicators")
     if not stateReplicators then return 0 end
@@ -52,7 +45,6 @@ local function getCurrentWave()
     return 0
 end
 
--- Helper: Check if current wave is a Boss Wave based on Difficulty
 local function isBossWave()
     local diff = getDifficulty()
     local currentWave = getCurrentWave()
@@ -83,7 +75,6 @@ local function isBossWave()
     return false
 end
 
--- Helper: Get all Evolved Kingpins (Path 1 only) belonging strictly to local player
 local function getMyKingpins()
     local myKingpins = {}
     local towersFolder = Workspace:FindFirstChild("Towers")
@@ -108,7 +99,6 @@ local function getMyKingpins()
     return myKingpins
 end
 
--- Helper: Check if an NPC is a Boss via its StatusEffects container
 local function isBossNPC(npcReplicator)
     local statusEffects = npcReplicator:FindFirstChild("StatusEffects")
     if statusEffects then
@@ -120,7 +110,6 @@ local function isBossNPC(npcReplicator)
     return false
 end
 
--- Helper: Update enemy cache & reset spawn timer when new "Enemies" type appears
 local function updateEnemyCache()
     local stateReplicators = ReplicatedStorage:FindFirstChild("StateReplicators")
     if not stateReplicators then return end
@@ -130,7 +119,6 @@ local function updateEnemyCache()
 
     local currentEnemies = {}
 
-    -- Add/Update active enemies in the cache
     for _, npc in ipairs(npcReplicatorsFolder:GetChildren()) do
         local npcType = npc:GetAttribute("Type")
         local health = npc:GetAttribute("Health") or npc:GetAttribute("MaxHealth") or 0
@@ -138,7 +126,6 @@ local function updateEnemyCache()
         if npcType == "Enemies" and health > 0 then
             currentEnemies[npc] = true
             if not enemyCache[npc] then
-                -- New enemy detected -> Reset 5-second timer
                 enemyCache[npc] = {
                     Instance = npc,
                     MaxHealth = npc:GetAttribute("MaxHealth") or 0,
@@ -150,7 +137,6 @@ local function updateEnemyCache()
         end
     end
 
-    -- Delete any NPCReplicator from cache if it no longer exists or died
     for npc, _ in pairs(enemyCache) do
         if not currentEnemies[npc] or not npc:IsDescendantOf(game) then
             enemyCache[npc] = nil
@@ -158,11 +144,9 @@ local function updateEnemyCache()
     end
 end
 
--- Helper: Find best target based on mode
 local function getTargetEnemy(mode)
     updateEnemyCache()
 
-    -- UNIVERSAL MODE: Decides whether to filter for Bosses or High HP based on wave
     local isBossSearchOnly = false
     if mode == "Universal" then
         local currentDifficulty = getDifficulty() or "Unknown"
@@ -177,7 +161,6 @@ local function getTargetEnemy(mode)
         isBossSearchOnly = true
     end
 
-    -- Filter cache down to available valid candidates
     local candidates = {}
     for npc, data in pairs(enemyCache) do
         local health = npc:GetAttribute("Health") or data.MaxHealth
@@ -192,7 +175,6 @@ local function getTargetEnemy(mode)
         end
     end
 
-    -- Find the candidate with the highest HP
     local highestEnemy = nil
     local maxHPFound = -1
 
@@ -207,13 +189,12 @@ local function getTargetEnemy(mode)
         return nil
     end
 
-    -- 1. Instant Lock Threshold: If target has >= 60,000 HP, lock on immediately (even on Bosses)
     if maxHPFound >= 60000 then
         print(string.format("[AutoBounty]: Target with >= 60k HP found (%d HP)! Locking on.", maxHPFound))
         return highestEnemy
     end
 
-    -- 2. Timer Check: Otherwise wait 5 seconds after the last spawn to let enemies settle
+
     local timeSinceLastSpawn = os.clock() - lastEnemySpawnTime
 
     if timeSinceLastSpawn < 5 then
@@ -224,21 +205,17 @@ local function getTargetEnemy(mode)
     return highestEnemy
 end
 
---- AutoBounty Mode Selector
--- @param mode (string): "Universal", "Highest HP", "High HP", "Boss", "Low HP", or "Off"
+
 function AutoBounty.Bounty(mode)
-    -- Cancel any previously active bounty thread
     if activeBountyThread then
         task.cancel(activeBountyThread)
         activeBountyThread = nil
         print("[AutoBounty]: Stopped previous Bounty loop.")
     end
 
-    -- Reset tracking data
     enemyCache = {}
     lastEnemySpawnTime = 0
 
-    -- Turn off if disabled
     if not mode or mode == "Off" or mode == false then
         print("[AutoBounty]: Disabled.")
         return
@@ -246,7 +223,6 @@ function AutoBounty.Bounty(mode)
 
     print(string.format("[AutoBounty]: Initialized targeting loop. Mode selected: [%s]", tostring(mode)))
 
-    -- Main operational loop
     activeBountyThread = task.spawn(function()
         while task.wait(0.5) do
             local kingpins = getMyKingpins()
