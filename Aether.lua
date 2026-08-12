@@ -3378,16 +3378,17 @@ local function GetCurrentWave()
     return tonumber(WaveNum) or 0
 end
 
-local function DoPlaceTower(TName, TPos)
+local function DoPlaceTower(TName, TPos, ...)
+    local args = {...}
     Logger:Log("Placing tower: " .. TName)
     while true do
         local ok, res = pcall(function()
             return RemoteFunc:InvokeServer("Troops", "Place", {
                 Rotation = CFrame.new(),
                 Position = TPos
-            }, TName)
+            }, TName, unpack(args))
         end)
- 
+
         if ok and CheckResOk(res) then return true end
         task.wait(0.25)
     end
@@ -3810,15 +3811,24 @@ end
 
 function TDS:Place(TName, px, py, pz, ...)
     local args = {...}
-    local stack = false
- 
-    if args[#args] == "stack" or args[#args] == true then
-        py = py+25
+    local isStacking = args[#args] == "stack" or args[#args] == true
+
+    if isStacking and not PremiumLoaded and GameState == "GAME" then
+        Window:Notify({
+            Title = "ADS",
+            Desc = "Stacking requires Premium. Automatically loading key system...",
+            Time = 3,
+            Type = "normal"
+        })
+
+        self:Addons()
+        return self:Place(TName, px, py, pz, unpack(args))
     end
+
     if GameState ~= "GAME" then
         return false 
     end
- 
+
     local existing = {}
     for _, child in ipairs(workspace.Towers:GetChildren()) do
         for _, SubChild in ipairs(child:GetChildren()) do
@@ -3828,9 +3838,9 @@ function TDS:Place(TName, px, py, pz, ...)
             end
         end
     end
- 
-    DoPlaceTower(TName, Vector3.new(px, py, pz))
- 
+
+    DoPlaceTower(TName, Vector3.new(px, py, pz), unpack(args))
+
     local NewT
     repeat
         for _, child in ipairs(workspace.Towers:GetChildren()) do
@@ -3846,11 +3856,10 @@ function TDS:Place(TName, px, py, pz, ...)
         end
         task.wait(0.05)
     until NewT
- 
+
     table.insert(self.PlacedTowers, NewT)
     return #self.PlacedTowers
 end
-
 function TDS:Upgrade(idx, PId)
     local t = self.PlacedTowers[idx]
     if t then
