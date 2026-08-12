@@ -1,4 +1,3 @@
-
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,6 +11,7 @@ local RemoteFunction = ReplicatedStorage:FindFirstChild("RemoteFunction")
 local AutoBounty = {}
 
 local activeBountyThread = nil
+local activeAbilityThread = nil
 
 local enemyCache = {}
 local lastEnemySpawnTime = 0
@@ -132,7 +132,6 @@ local function updateEnemyCache()
                     FirstSeen = os.clock()
                 }
                 lastEnemySpawnTime = os.clock()
-                print(string.format("[AutoBounty]: New enemy spawned (%d HP). Resetting 5s timer.", enemyCache[npc].MaxHealth))
             end
         end
     end
@@ -149,12 +148,7 @@ local function getTargetEnemy(mode)
 
     local isBossSearchOnly = false
     if mode == "Universal" then
-        local currentDifficulty = getDifficulty() or "Unknown"
-        local currentWave = getCurrentWave()
-        local bossWaveActive = isBossWave()
-
-        if bossWaveActive then
-            print("[Universal Mode]: Boss Wave detected! Filtering strictly for Bosses...")
+        if isBossWave() then
             isBossSearchOnly = true
         end
     elseif mode == "Boss" then
@@ -190,46 +184,59 @@ local function getTargetEnemy(mode)
     end
 
     if maxHPFound >= 60000 then
-        print(string.format("[AutoBounty]: Target with >= 60k HP found (%d HP)! Locking on.", maxHPFound))
         return highestEnemy
     end
 
-
     local timeSinceLastSpawn = os.clock() - lastEnemySpawnTime
-
     if timeSinceLastSpawn < 5 then
-        print(string.format("[AutoBounty]: Under 60k HP. Waiting for spawns to settle... (%.1fs / 5s)", timeSinceLastSpawn))
         return nil
     end
 
     return highestEnemy
 end
 
+local function getTargetByName(targetName)
+    local stateReplicators = ReplicatedStorage:FindFirstChild("StateReplicators")
+    if not stateReplicators then return nil end
+
+    local npcReplicatorsFolder = stateReplicators:FindFirstChild("NPCReplicators") or stateReplicators
+    if not npcReplicatorsFolder then return nil end
+
+    local searchName = string.lower(tostring(targetName))
+
+    for _, npc in ipairs(npcReplicatorsFolder:GetChildren()) do
+        local npcType = npc:GetAttribute("Type")
+        local health = npc:GetAttribute("Health") or npc:GetAttribute("MaxHealth") or 0
+        local nameAttr = npc:GetAttribute("Name")
+
+        if npcType == "Enemies" and health > 0 and nameAttr then
+            if string.lower(tostring(nameAttr)) == searchName then
+                return npc
+            end
+        end
+    end
+
+    return nil
+end
 
 function AutoBounty.Bounty(mode)
     if activeBountyThread then
         task.cancel(activeBountyThread)
         activeBountyThread = nil
-        print("[AutoBounty]: Stopped previous Bounty loop.")
     end
 
     enemyCache = {}
     lastEnemySpawnTime = 0
 
     if not mode or mode == "Off" or mode == false then
-        print("[AutoBounty]: Disabled.")
         return
     end
-
-    print(string.format("[AutoBounty]: Initialized targeting loop. Mode selected: [%s]", tostring(mode)))
 
     activeBountyThread = task.spawn(function()
         while task.wait(0.5) do
             local kingpins = getMyKingpins()
-            
             if #kingpins > 0 then
                 local targetReplicator = getTargetEnemy(mode)
-
                 if targetReplicator then
                     for _, kingpin in ipairs(kingpins) do
                         if RemoteFunction then
@@ -241,13 +248,61 @@ function AutoBounty.Bounty(mode)
                                     {
                                         Troop = kingpin,
                                         Name = "Bounty",
-                                        Data = {
-                                            ReplicatorFolder = targetReplicator
-                                        }
+                                        Data = { ReplicatorFolder = targetReplicator }
                                     }
                                 )
                             end)
                         end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+function AutoBounty.Ability(targetName, isLoop)
+    if activeAbilityThread then
+        task.cancel(activeAbilityThread)
+        activeAbilityThread = nil
+    end
+
+    if not targetName or targetName == "Off" or targetName == false then
+        print("[AutoBounty]: Stopped Specific Ability target loop.")
+        return
+    end
+
+    local shouldLoop = (isLoop == true)
+
+    activeAbilityThread = task.spawn(function()
+        while task.wait(0.5) do
+            local kingpins = getMyKingpins()
+
+            if #kingpins > 0 then
+                local targetReplicator = getTargetByName(targetName)
+
+                if targetReplicator then
+                
+                    for _, kingpin in ipairs(kingpins) do
+                        if RemoteFunction then
+                            pcall(function()
+                                RemoteFunction:InvokeServer(
+                                    "Troops",
+                                    "Abilities",
+                                    "Activate",
+                                    {
+                                        Troop = kingpin,
+                                        Name = "Bounty",
+                                        Data = { ReplicatorFolder = targetReplicator }
+                                    }
+                                )
+                            end)
+                        end
+                    end
+
+                    if not shouldLoop then
+                     
+                        activeAbilityThread = nil
+                        break
                     end
                 end
             end
