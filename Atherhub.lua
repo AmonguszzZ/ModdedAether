@@ -4828,7 +4828,7 @@ local function StartMedicChain()
         end
         if not AutoMedicLib then
     local success, loadedLib = pcall(function()
-        local url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPOSITORY/main/AutoMedic.lua"
+        local url = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/AutoAbilities/AutoMedic.lua"
         return loadstring(game:HttpGet(url))()
     end)
 
