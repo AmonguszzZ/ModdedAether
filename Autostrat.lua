@@ -231,6 +231,12 @@ local AllTowers = {
     "Mecha Base"
 }
 
+local AllMissionSkins = { 
+    "A Mysterious Drifter", "Back From Infernal", "Chance of Drizzle", "For the Commander!", "Hazardous Haste", "T.D.S. Commandos", "You're Being Recorded",
+    "A Cold Tyrant", "Abyssal Bruiser", "Condemned Vigilante", "Corrupted Touch", "Dark Radiance", "Fallen Angel", "Forbidden Magic", "Frozen Impact", "Oppressive Bombardment", 
+    "Shadowforge Tinkerer", "The Underworld Dreg", "Undead Soldier", "Underworld Warden", "Unyielding Shooter", "Suppressing Fire", "Tech Tactician"
+}
+
 local DefaultSettings = {
     PathVisuals = false,
     MilitaryPath = false,
@@ -278,6 +284,10 @@ local DefaultSettings = {
     Towerslot = {},
 
     AutoBounty = false,
+
+    AutoTrialsSelectedMod = {}, 
+    AutoMissionSkinsSelected = {},
+    SelectedExtension = "None"
 }
 
 local TimeScaleValues = {0.5, 1, 1.5, 2}
@@ -1491,6 +1501,24 @@ local Automation = Window:Tab({Title = "Automation", Icon = "bot"}) do
     })
 
     Automation:Toggle({
+        Title = "Auto Hacker",
+        Desc = "Targets any tower from any player",
+        Value = Globals.AutoBounty,
+        Callback = function(v)
+            SetSetting("AutoBounty", v)
+        end
+    })
+
+    Automation:Toggle({
+        Title = "Auto Milbase",
+        Desc = "Auto Matically target the first enemies instead of path",
+        Value = Globals.AutoBounty,
+        Callback = function(v)
+            SetSetting("AutoBounty", v)
+        end
+    })
+
+    Automation:Toggle({
         Title = "Support Caravan",
         Desc = "Uses Commander Support Caravan",
         Value = Globals.SupportCaravan,
@@ -2383,140 +2411,76 @@ end
 Window:Line()
 
 local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"}) do
+    
+    Strategies:Section({Title = "Auto Missons"})
 
+    Strategies:Dropdown({
+    Title = "Auto Mission:",
+    Desc = "Selected mission will be done according to the list and will skip if you dont have the requirments for it!",
+    List = AllMissionSkins,
+    Value = Globals.AutoMissionSkinsSelected,
+    Multi = true,
+    Callback = function(choice)
+        SetSetting("AutoMissionSkinsSelected", choice)
+    end
+})
 
---[[
-    Strategies:Toggle({
-        Title = "Fallen Mode",
-        Desc = "Skill tree: Not needed\n\nTowers:\nGolden Scout,\nBrawler,\nMercenary Base,\nElectroshocker,\nEngineer",
-        Value = Globals.Fallen,
-        Callback = function(v)
-            SetSetting("Fallen", v)
+    Strategies:Section({Title = "Auto Trials"})
 
-            if v then
-                task.spawn(function()
-                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Fallen.lua"
-                    local content = game:HttpGet(url)
+    Strategies:Dropdown({
+    Title = "Auto Trials Modifiers:",
+    Desc = "Auto trials will farm trials that are selected for you to earn timescales unselected trials are then ignored. ",
+    List = AllModifiers,
+    Value = Globals.AutoTrialsSelectedMod,
+    Multi = true,
+    Callback = function(choice)
+        SetSetting("AutoTrialsSelectedMod", choice)
+    end
+})
 
-                    while not (TDS and TDS.Loadout) do
-                        task.wait(0.5) 
-                    end
+if not isfolder("PilotingService") then
+    makefolder("PilotingService")
+end
 
-                    local func, err = loadstring(content)
-                    if func then
-                        func() 
-                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
-                    end
-                end)
-            end
+local SelectedExtension = Globals.SelectedExtension or "None"
+
+local function GetPilotingScripts()
+    local scripts = {"None"}
+    local files = listfiles("PilotingService")
+    
+    for _, filePath in ipairs(files) do
+        if filePath:match("%.lua$") then
+            local fileName = filePath:match(".+[/\\](.+)%.lua$") or filePath
+            table.insert(scripts, fileName)
         end
-    })
+    end
+    
+    return scripts
+end
 
-    Strategies:Toggle({
-        Title = "Intermediate Mode",
-        Desc = "Skill tree: Not needed\n\nTowers:\nShotgunner,\nCrook Boss",
-        Value = Globals.Intermediate,
-        Callback = function(v)
-            SetSetting("Intermediate", v)
+Strategies:Dropdown({
+    Title = "Extensions:",
+    Desc = "Selected file will be farmed during auto  trials this will only run if the trials are not available!",
+    List = GetPilotingScripts(),
+    Value = SelectedExtension,
+    Multi = false,
+    Callback = function(choice)
+        SelectedExtension = choice
+        SetSetting("SelectedExtension", choice)
+        
+        print("Selected Piloting Script: " .. choice)
+    end
+})
 
-            if v then
-                task.spawn(function()
-                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Intermediate.lua"
-                    local content = game:HttpGet(url)
+Strategies:Toggle({
+    Title = "Run",
+    Desc = "Enables the selected configs",
+    Value = Globals.AutoModifiers,
+    Callback = function(v)
+        SetSetting("AutoModifiers", v)
+    end
+})
 
-                    while not (TDS and TDS.Loadout) do
-                        task.wait(0.5) 
-                    end
-
-                    local func, err = loadstring(content)
-                    if func then
-                        func() 
-                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
-                    end
-                end)
-            end
-        end
-    })
-
-    Strategies:Toggle({
-        Title = "Casual Mode",
-        Desc = "Skill tree: Not needed\n\nTowers:\nShotgunner",
-        Value = Globals.Casual,
-        Callback = function(v)
-            SetSetting("Casual", v)
-
-            if v then
-                task.spawn(function()
-                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Casual.lua"
-                    local content = game:HttpGet(url)
-
-                    while not (TDS and TDS.Loadout) do
-                        task.wait(0.5) 
-                    end
-
-                    local func, err = loadstring(content)
-                    if func then
-                        func() 
-                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
-                    end
-                end)
-            end
-        end
-    })
-
-    Strategies:Toggle({
-        Title = "Easy Mode",
-        Desc = "Skill tree: Not needed\n\nTowers:\nNormal Scout",
-        Value = Globals.Easy,
-        Callback = function(v)
-            SetSetting("Easy", v)
-
-            if v then
-                task.spawn(function()
-                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Easy.lua"
-                    local content = game:HttpGet(url)
-
-                    while not (TDS and TDS.Loadout) do
-                        task.wait(0.5) 
-                    end
-
-                    local func, err = loadstring(content)
-                    if func then
-                        func() 
-                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
-                    end
-                end)
-            end
-        end
-    })
-
-    Strategies:Section({Title = "Other Strategies"})
-    Strategies:Toggle({
-        Title = "Hardcore Mode",
-        Desc = "Towers:\nFarm,\nGolden Scout,\nDJ Booth,\nCommander,\nElectroshocker,\nRanger,\nFreezer,\nGolden Minigunner",
-        Value = Globals.Hardcore,
-        Callback = function(v)
-            SetSetting("Hardcore", v)
-
-            if v then
-                task.spawn(function()
-                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Hardcore.lua"
-                    local content = game:HttpGet(url)
-
-                    while not (TDS and TDS.Loadout) do
-                        task.wait(0.5) 
-                    end
-
-                    local func, err = loadstring(content)
-                    if func then
-                        func() 
-                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
-                    end
-                end)
-            end
-        end
-    })
-]]
 end
 
 Window:Line()
