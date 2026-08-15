@@ -2427,6 +2427,182 @@ local Strategies = Window:Tab({Title = "Strategies", Icon = "clipboard-list"}) d
 
     Strategies:Section({Title = "Auto Trials"})
 
+    local folderName = "GlobalConfigs" 
+    local fileName = folderName .. "/Trials.txt"
+    local checkerFileName = folderName .. "/PlayerDataChecker.lua"
+
+    if not isfolder(folderName) then
+       makefolder(folderName)
+    end
+
+    local function ReadSavedTrial()
+        if isfile(fileName) then
+            local success, content = pcall(readfile, fileName)
+            if success and content then
+                local current, nextTrial = content:match("Current:(.-)|Next:(.*)")
+                if current and nextTrial then
+                    return current, nextTrial
+                end
+            end
+        end
+        return nil, nil
+    end
+
+local TrialsTable = {
+    "Speedy Enemies",
+    "Glass",
+    "Quarantine",
+    "FPG",
+    "Limitation",
+    "Flying Enemies",
+    "Jailed Towers",
+    "Exploding Enemies",
+    "Inflation",
+    "Committed",
+    "Hidden Enemies",
+    "Broke",
+    "Healthy Enemies"
+}
+
+-- Create the dynamic trial info label
+local TrialInfoLabel = Strategies:Label({
+    Title = "Current Trial: Loading...",
+    Desc = "Next Trial: Loading..."
+})
+
+local PlayerInventoryLabel = Strategies:Label({
+    Title = "Inventory: Loading...",
+    Desc = "Status: Waiting for data..."
+})
+
+local isCheckerActive = false
+
+local function RunPlayerDataChecker()
+    task.spawn(function()
+        while isCheckerActive do
+            local success, err = pcall(function()
+                if isfile(checkerFileName) then
+                    local scriptContent = readfile(checkerFileName)
+                    
+                    local scriptFunction, loadErr = loadstring(scriptContent)
+                    if scriptFunction then
+                        -- Execute the return-type library file
+                        local data = scriptFunction()
+                        
+                        if data and type(data) == "table" then
+                            PlayerInventoryLabel:SetTitle(data.Title or "Inventory: Unknown")
+                            PlayerInventoryLabel:SetDesc(data.Desc or "Status: Unknown")
+                        else
+                            PlayerInventoryLabel:SetTitle("Inventory: Error")
+                            PlayerInventoryLabel:SetDesc("Invalid return format from library")
+                        end
+                    else
+                        warn("[Library Load Error]: " .. tostring(loadErr))
+                        PlayerInventoryLabel:SetTitle("Inventory: Error")
+                        PlayerInventoryLabel:SetDesc("Syntax error in library file")
+                    end
+                else
+                    PlayerInventoryLabel:SetTitle("Inventory: Missing File")
+                    PlayerInventoryLabel:SetDesc("Create PlayerDataChecker.lua in GlobalConfigs")
+                end
+            end)
+            
+            if not success then
+                warn("[Checker Loop Error]: " .. tostring(err))
+            end
+            
+            task.wait(3)
+        end
+        
+        PlayerInventoryLabel:SetTitle("Inventory: Offline")
+        PlayerInventoryLabel:SetDesc("Status: Off")
+    end)
+end
+
+Strategies:Toggle({
+    Title = "Player Data Checker",
+    Desc = "Enables checking player level library.",
+    Value = Globals.AutoPlayerDataChecker or false,
+    Callback = function(v)
+        isCheckerActive = v
+        SetSetting("AutoPlayerDataChecker", v)
+        
+        if v then
+            RunPlayerDataChecker()
+        end
+    end
+})
+
+-- Safely read the TrialsStateReplicator attribute and match it with the table
+task.spawn(function()
+    while true do
+        local loadedSuccessfully = false
+        
+        pcall(function()
+            local replicatedStorage = game:GetService("ReplicatedStorage")
+            local stateReplicators = replicatedStorage:FindFirstChild("StateReplicators")
+            
+            if stateReplicators then
+                local trialsReplicator = stateReplicators:FindFirstChild("TrialsStateReplicator")
+                
+                if trialsReplicator then
+                    local globalTrialData = trialsReplicator:GetAttribute("GlobalTrial")
+                    
+                    if globalTrialData then
+                        local currentTrialStr = tostring(globalTrialData)
+                        local currentTrialName = currentTrialStr
+                        local nextTrialName = "Unknown"
+                        
+                        -- Match current trial with table to extract the next scheduled trial
+                        local foundIndex = nil
+                        for i, trial in ipairs(TrialsTable) do
+                            if currentTrialStr:lower():find(trial:lower()) then
+                                foundIndex = i
+                                currentTrialName = trial
+                                break
+                            end
+                        end
+                        
+                        if foundIndex then
+                            local nextIndex = foundIndex + 1
+                            if nextIndex <= #TrialsTable then
+                                nextTrialName = TrialsTable[nextIndex]
+                            else
+                                nextTrialName = TrialsTable[1]
+                            end
+                        else
+                            nextTrialName = TrialsTable[1]
+                        end
+                        
+                        -- Apply live update to UI
+                        TrialInfoLabel:SetTitle("Current Trial: " .. currentTrialName)
+                        TrialInfoLabel:SetDesc("Next Trial: " .. nextTrialName)
+                        
+                        -- Save to GlobalConfigs/Trials.txt
+                        writefile(fileName, "Current:" .. currentTrialName .. "|Next:" .. nextTrialName)
+                        loadedSuccessfully = true
+                    end
+                end
+            end
+        end)
+        
+        -- Fallback: If live detection failed or returned loading state, load from cache file
+        if not loadedSuccessfully then
+            local savedCurrent, savedNext = ReadSavedTrial()
+            if savedCurrent and savedNext then
+                TrialInfoLabel:SetTitle("Current Trial: " .. savedCurrent .. " (Cached)")
+                TrialInfoLabel:SetDesc("Next Trial: " .. savedNext .. " (Cached)")
+            else
+                TrialInfoLabel:SetTitle("Current Trial: Unavailable")
+                TrialInfoLabel:SetDesc("Next Trial: Unavailable")
+            end
+        end
+        
+        -- Check every 1 second
+        task.wait(1)
+    end
+end)
+
     Strategies:Dropdown({
     Title = "Auto Trials Modifiers:",
     Desc = "Auto trials will farm trials that are selected for you to earn timescales unselected trials are then ignored. ",
