@@ -1,7 +1,24 @@
--- AutoTrials.lua
+
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
--- Function to load TrialRequirements dynamically using loadstring from GitHub
+local TRIAL_PLACE_ID = 3260590327
+
+local trialScripts = {
+    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/SpeedyEnemies.lua",
+    ["Glass"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Glass.lua",
+    ["Quarantine"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Quarantine.lua",
+    ["Fog"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Fog.lua",
+    ["Limitation"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Limitation.lua",
+    ["Flying Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/FlyingEnemies.lua",
+    ["Jailed Towers"]       = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/JailedTowers.lua",
+    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/ExplodingEnemies.lua",
+    ["Inflation"]           = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/InflationP1.txt",
+    ["Committed"]           = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Committed.lua",
+    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/HiddenEnemies.lua",
+    ["Broke"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Broke.lua",
+    ["Healthy Enemies"]     = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/HealthyEnemies.lua"
+}
+
 local function getAvailableTrials()
     local url = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/GetTrials.lua"
     
@@ -17,14 +34,74 @@ local function getAvailableTrials()
     end
 end
 
--- Function to normalize string formats (e.g., "Exploading Enemies" <-> "ExploadingEnemies")
 local function normalizeString(str)
     if not str then return "" end
     return string.lower(string.gsub(str, "%s+", ""))
 end
 
--- Function to check the current active trial against available trials
+local function executeTrialScript(matchedTrialName)
+    local targetKey = nil
+    local normalizedTarget = normalizeString(matchedTrialName)
+
+    for configName, _ in pairs(trialScripts) do
+        if normalizeString(configName) == normalizedTarget then
+            targetKey = configName
+            break
+        end
+    end
+
+    if not targetKey or not trialScripts[targetKey] then
+        warn(string.format("[AutoTrials] No loadstring URL mapped for trial: '%s'", tostring(matchedTrialName)))
+        return
+    end
+
+    local scriptUrl = trialScripts[targetKey]
+    print(string.format("[AutoTrials] Loading execution script for '%s' from: %s", targetKey, scriptUrl))
+
+    local success, err = pcall(function()
+        local chunk = game:HttpGet(scriptUrl)
+        local fn = loadstring(chunk)
+        if fn then
+            fn()
+        else
+            error("Failed to compile loadstring chunk")
+        end
+    end)
+
+    if success then
+        print(string.format("[AutoTrials] Successfully executed script for '%s'!", targetKey))
+    else
+        warn(string.format("[AutoTrials] Error executing script for '%s': %s", targetKey, tostring(err)))
+    end
+end
+
 local function evaluateCurrentTrial()
+    if game.PlaceId == TRIAL_PLACE_ID then
+        print(string.format("[AutoTrials] Current PlaceId (%d) matches trial place ID. Triggering Multiplayer start...", game.PlaceId))
+        
+        local remoteFunction = replicatedStorage:FindFirstChild("RemoteFunction")
+        if remoteFunction and remoteFunction:IsA("RemoteFunction") then
+            local success, err = pcall(function()
+                remoteFunction:InvokeServer(
+                    "Multiplayer",
+                    "v2:start",
+                    {
+                        count = 1,
+                        mode = "Trials"
+                    }
+                )
+            end)
+            if success then
+                print("[AutoTrials] Successfully invoked Multiplayer start for Trials.")
+            else
+                warn(string.format("[AutoTrials] Failed to invoke Multiplayer start: %s", tostring(err)))
+            end
+        else
+            warn("[AutoTrials] RemoteFunction not found in ReplicatedStorage.")
+        end
+        return
+    end
+
     local stateReplicators = replicatedStorage:FindFirstChild("StateReplicators")
     local trialsReplicator = stateReplicators and stateReplicators:FindFirstChild("TrialsStateReplicator")
 
@@ -44,17 +121,19 @@ local function evaluateCurrentTrial()
     local availableTrials = getAvailableTrials()
     local canPlay = false
     local normalizedCurrent = normalizeString(currentTrial)
+    local matchedOriginalName = nil
 
     for _, trialName in ipairs(availableTrials) do
         if normalizeString(trialName) == normalizedCurrent then
             canPlay = true
+            matchedOriginalName = trialName
             break
         end
     end
 
     if canPlay then
-        print(string.format("[AutoTrials] Success: Player owns/qualifies for '%s'. Ready to play!", tostring(currentTrial)))
-        -- Insert your automated play logic here
+        print(string.format("[AutoTrials] Success: Player owns/qualifies for '%s'. Running script...", tostring(currentTrial)))
+        executeTrialScript(matchedOriginalName)
     else
         print(string.format("[AutoTrials] Restricted: Player does not meet requirements for '%s'. Skipping...", tostring(currentTrial)))
     end
