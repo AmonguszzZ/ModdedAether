@@ -4,19 +4,19 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 local TRIAL_PLACE_ID = 3260590327
 
 local trialScripts = {
-    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/SpeedyEnemies.lua",
-    ["Glass"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Glass.lua",
-    ["Quarantine"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Quarantine.lua",
-    ["Fog"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Fog.lua",
-    ["Limitation"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Limitation.lua",
-    ["Flying Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/FlyingEnemies.lua",
-    ["Jailed Towers"]       = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/JailedTowers.lua",
-    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/ExplodingEnemies.lua",
-    ["Inflation"]           = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/InflationP1.txt",
-    ["Committed"]           = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Committed.lua",
-    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/HiddenEnemies.lua",
-    ["Broke"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/Broke.lua",
-    ["Healthy Enemies"]     = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/HealthyEnemies.lua"
+    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Speedy.txt",
+    ["Glass"]               = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Glass.txt",
+    ["Quarantine"]          = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Quarantine.txt",
+    ["Fog"]                 = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Fog.txt",
+    ["Limitation"]          = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Limitation.txt",
+    ["Flying Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Flying.txt",
+    ["Jailed Towers"]       = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Jailed.txt",
+    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Exploding.txt",
+    ["Inflation"]           = "Placeholder",
+    ["Committed"]           = "Placeholder",
+    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Hidden.txt",
+    ["Broke"]               = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Broke.txt",
+    ["Healthy Enemies"]     = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Healthy.txt"
 }
 
 local function getAvailableTrials()
