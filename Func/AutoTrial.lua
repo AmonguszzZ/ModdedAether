@@ -1,7 +1,8 @@
 -- AutoTrials.lua
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
-local function getAvailableTrialsWithConfigs()
+-- Function to load TrialRequirements dynamically using loadstring from GitHub
+local function getAvailableTrials()
     local url = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/GetTrials.lua"
     
     local success, result = pcall(function()
@@ -16,6 +17,13 @@ local function getAvailableTrialsWithConfigs()
     end
 end
 
+-- Function to normalize string formats (e.g., "Exploading Enemies" <-> "ExploadingEnemies")
+local function normalizeString(str)
+    if not str then return "" end
+    return string.lower(string.gsub(str, "%s+", ""))
+end
+
+-- Function to check the current active trial against available trials
 local function evaluateCurrentTrial()
     local stateReplicators = replicatedStorage:FindFirstChild("StateReplicators")
     local trialsReplicator = stateReplicators and stateReplicators:FindFirstChild("TrialsStateReplicator")
@@ -31,45 +39,24 @@ local function evaluateCurrentTrial()
         return
     end
 
-    print(string.format("[AutoTrials] Current active trial: %s", tostring(currentTrial)))
+    print(string.format("[AutoTrials] Current active trial (Replicator): %s", tostring(currentTrial)))
 
-    local availableTrials = getAvailableTrialsWithConfigs()
+    local availableTrials = getAvailableTrials()
     local canPlay = false
+    local normalizedCurrent = normalizeString(currentTrial)
 
     for _, trialName in ipairs(availableTrials) do
-        if trialName == currentTrial then
+        if normalizeString(trialName) == normalizedCurrent then
             canPlay = true
             break
         end
     end
 
     if canPlay then
-        print(string.format("[AutoTrials] Success: Player owns/qualifies for '%s'. Ready to play.", currentTrial))
+        print(string.format("[AutoTrials] Success: Player owns/qualifies for '%s'. Ready to play!", tostring(currentTrial)))
+        -- Insert your automated play logic here
     else
-        -- Fallback inspection to show requirements for the unowned trial
-        local trialConfigs = {
-            ["Speedy Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Glass"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = { ["1"] = 10 } },
-            ["Quarantine"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Fog"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Limitation"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Flying Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Jailed Towers"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Exploding Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Inflation"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Committed"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Hidden Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Broke"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-            ["Healthy Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} }
-        }
-
-        local reqs = trialConfigs[currentTrial]
-        if reqs then
-            local towersStr = table.concat(reqs.Towers, ", ")
-            print(string.format("[AutoTrials] Restricted: Player does not meet requirements for '%s'. Required Level: %d | Towers: [%s]", currentTrial, reqs.Level, towersStr))
-        else
-            print(string.format("[AutoTrials] Restricted: Player does not meet requirements for '%s' (No config found).", currentTrial))
-        end
+        print(string.format("[AutoTrials] Restricted: Player does not meet requirements for '%s'. Skipping...", tostring(currentTrial)))
     end
 end
 
