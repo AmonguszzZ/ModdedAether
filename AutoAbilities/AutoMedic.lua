@@ -23,9 +23,9 @@ local CAPACITY_BY_LEVEL = {
 }
 
 local UBERCHARGE_DURATION = {
-    [3] = 10,
-    [4] = 12.5,
-    [5] = 15
+    [3] = 7.5,
+    [4] = 10,
+    [5] = 10
 }
 
 local function resolveTargetPlayer(targetInput)
@@ -71,7 +71,7 @@ function AutoMedic.GetAllTowers()
             })
         end
     end
-
+    
     table.sort(allTowers, function(a, b)
         return a.CreatedAt < b.CreatedAt
     end)
@@ -242,7 +242,7 @@ function AutoMedic.Function(targetPlayer, towersToSelect, toggle, medicIndex)
     if toggle then
         local thread = task.spawn(function()
             while true do
-                -- Check if Medic still exists in workspace
+
                 if not selectedMedic or not selectedMedic.Parent then
                     if #activeLoops[medicIndex].lastTargets > 0 then
                         activeLoops[medicIndex].lastTargets = {}
@@ -330,7 +330,7 @@ function AutoMedic.Chain(targetPlayer, towersToSelect, toggle)
 
             local capacity = getMedicCapacity(medicTower)
             local targetTowers = getTargetTowersFromIndex(targetPlayer, towersToSelect, capacity)
-            
+
             while #targetTowers == 0 do
                 task.wait(1)
                 if countReadyMedics(getMyMedics()) < 4 then
@@ -344,9 +344,13 @@ function AutoMedic.Chain(targetPlayer, towersToSelect, toggle)
             print(string.format("[AutoMedic.Chain]: Medic [%d] (Level %d) -> Attaching %d target(s) & activating Ubercharge (Duration: %.1fs)...", index, currentUpgrade, #targetTowers, duration))
             
             local attachedTargets = table.clone(targetTowers)
+
             toggleMedicTargets(medicTower, attachedTargets)
+
             activateUbercharge(medicTower)
+
             task.wait(duration)
+
             if medicTower and medicTower.Parent then
                 toggleMedicTargets(medicTower, attachedTargets)
                 print(string.format("[AutoMedic.Chain]: Medic [%d] -> Detached targets.", index))
