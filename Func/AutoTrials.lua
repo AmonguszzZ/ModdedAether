@@ -6,17 +6,17 @@ local CONFIG_FOLDER = "GlobalConfigs"
 local TRIAL_STATE_FILE = CONFIG_FOLDER .. "/trialscript.txt"
 
 local trialScripts = {
-    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Speedy.txt",
-    ["Glass"]               = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Glass.txt",
-    ["Quarantine"]          = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Quarantine.txt",
-    ["Fog"]                 = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Fog.txt",
-    ["Limitation"]          = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Limitation.txt",
-    ["Flying Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Flying.txt",
-    ["Jailed Towers"]       = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Jailed.txt",
-    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Exploding.txt",
+    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Speedy.lua",
+    ["Glass"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Glass.lua",
+    ["Quarantine"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Quarantine.lua",
+    ["Fog"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Fog.lua",
+    ["Limitation"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Limitation.lua",
+    ["Flying Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Flying.lua",
+    ["Jailed Towers"]       = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Jailed.lua",
+    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Exploading.lua",
     ["Inflation"]           = "Placeholder",
     ["Committed"]           = "Placeholder",
-    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Hidden.txt",
+    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
     ["Broke"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Brokes.lua",
     ["Healthy Enemies"]     = "Placeholder"
 }
