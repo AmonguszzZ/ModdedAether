@@ -1,4 +1,3 @@
-
 local checkerUrl = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Func/PlayerData.lua"
 
 local function loadChecker()
@@ -62,6 +61,36 @@ local function GetAvailableTrials()
     return availableTrials
 end
 
+local function GetMissingTower()
+    local missingData = {}
+    local CheckData = loadChecker()
+
+    if not CheckData then
+        warn("[TrialRequirements] Failed to fetch or load CheckData function from URL")
+        return missingData
+    end
+
+    for trialName, reqs in pairs(trialConfigs) do
+        local success, result = pcall(function()
+            return CheckData(reqs.Level, reqs.Towers, reqs.Skills)
+        end)
+
+        if not success or (result and not result.Success) then
+            local missingTowers = result and result.MissingTowers or reqs.Towers
+            local missingSkills = reqs.Skills or {}
+
+            missingData[trialName] = {
+                MissingTowers = missingTowers,
+                MissingSkills = missingSkills,
+                Reason = result and result.Desc or "Unknown reason"
+            }
+        end
+    end
+
+    return missingData
+end
+
 return {
-    GetTrials = GetAvailableTrials
+    GetTrials = GetAvailableTrials,
+    GetMissingTower = GetMissingTower
 }
