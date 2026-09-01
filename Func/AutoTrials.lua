@@ -4,7 +4,6 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 local TRIAL_PLACE_ID = 3260590327
 local CONFIG_FOLDER = "GlobalConfigs"
 local TRIAL_STATE_FILE = CONFIG_FOLDER .. "/trialscript.txt"
-local AUTO_TRIAL_FILE = CONFIG_FOLDER .. "/AutoTrial.lua"
 
 local trialScripts = {
     ["Speedy Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Speedy.txt",
@@ -55,27 +54,40 @@ local function executeTrialScript(matchedTrialName)
 
     if not targetKey or not trialScripts[targetKey] then
         warn(string.format("[AutoTrials] No loadstring URL mapped for trial: '%s'", tostring(matchedTrialName)))
-        return
+        return false
     end
 
     local scriptUrl = trialScripts[targetKey]
-    print(string.format("[AutoTrials] Loading execution script for '%s' from: %s", targetKey, scriptUrl))
+    local maxRetries = 3
+    local success, err
 
-    local success, err = pcall(function()
-        local chunk = game:HttpGet(scriptUrl)
-        local fn = loadstring(chunk)
-        if fn then
-            fn()
+    for attempt = 1, maxRetries do
+        print(string.format("[AutoTrials] Loading execution script for '%s' (Attempt %d/%d) from: %s", targetKey, attempt, maxRetries, scriptUrl))
+        
+        success, err = pcall(function()
+            local chunk = game:HttpGet(scriptUrl)
+            local fn = loadstring(chunk)
+            if fn then
+                fn()
+            else
+                error("Failed to compile loadstring chunk")
+            end
+        end)
+
+        if success then
+            print(string.format("[AutoTrials] Successfully executed script for '%s'!", targetKey))
+            return true
         else
-            error("Failed to compile loadstring chunk")
+            warn(string.format("[AutoTrials] Error executing script for '%s' on attempt %d/%d: %s", targetKey, attempt, maxRetries, tostring(err)))
+            if attempt < maxRetries then
+                print(string.format("[AutoTrials] Retrying in 1 second..."))
+                task.wait(1)
+            end
         end
-    end)
-
-    if success then
-        print(string.format("[AutoTrials] Successfully executed script for '%s'!", targetKey))
-    else
-        warn(string.format("[AutoTrials] Error executing script for '%s': %s", targetKey, tostring(err)))
     end
+
+    warn(string.format("[AutoTrials] Failed to execute script for '%s' after %d attempts.", targetKey, maxRetries))
+    return false
 end
 
 local function ensureConfigFolder()
@@ -167,8 +179,7 @@ local function RunAutoTrial()
     local savedTrial = readTrialState()
     if savedTrial then
         print(string.format("[AutoTrials] Found saved trial state: '%s'. Executing corresponding script...", savedTrial))
-        executeTrialScript(savedTrial)
-        return true
+        return executeTrialScript(savedTrial)
     else
         warn("[AutoTrials] No trial state found in trialscript.txt to execute!")
         return false
