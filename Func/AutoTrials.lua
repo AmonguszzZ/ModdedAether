@@ -18,7 +18,7 @@ local trialScripts = {
     ["Committed"]           = "Placeholder",
     ["Hidden Enemies"]      = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Hidden.txt",
     ["Broke"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Brokes.lua",
-    ["Healthy Enemies"]     = "https://raw.githubusercontent.com/wutmen2/strats/refs/heads/main/Trials/Healthy.txt"
+    ["Healthy Enemies"]     = "Placeholder"
 }
 
 local function getAvailableTrials()
