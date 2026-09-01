@@ -18,19 +18,19 @@ local function loadChecker()
 end
 
 local trialConfigs = {
-    ["Speedy Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Glass"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Quarantine"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Fog"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Limitation"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Flying Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Jailed Towers"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Exploding Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Inflation"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Committed"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Hidden Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Broke"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Healthy Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} }
+["Speedy Enemies"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "Trapper"}, Skills = {} },
+["Glass"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "Trapper"}, Skills = {} },
+["Quarantine"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "DJ Booth"}, Skills = {} },
+["Fog"] = { Level = 175, Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booth"}, Skills = {} },
+["Limitation"] = { Level = 175, Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booth"}, Skills = {} },
+["Flying"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "DJ Booth"}, Skills = {} },
+["Jailed"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "Military Base"}, Skills = {} },
+["Exploding"] = { Level = 175, Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "DJ Booth"}, Skills = {} },
+["Inflation"] = { Level = 175, Towers = {"Placeholder"}, Skills = {} },
+["Commited"] = { Level = 175, Towers = {"Placeholder"}, Skills = {} },
+["Hidden"] = { Level = 175, Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booth"}, Skills = {} },
+["Broke"] = { Level = 175, Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booth"}, Skills = {} },
+["Healthy Enemies"] = { Level = 175, Towers = {"Placeholder"}, Skills = {} },
 }
 
 local function GetAvailableTrials()
