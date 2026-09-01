@@ -1,4 +1,3 @@
--- AutoTrials.lua
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
 local TRIAL_PLACE_ID = 3260590327
@@ -6,34 +5,50 @@ local CONFIG_FOLDER = "GlobalConfigs"
 local TRIAL_STATE_FILE = CONFIG_FOLDER .. "/trialscript.txt"
 
 local trialScripts = {
-    ["Speedy Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Speedy.lua",
-    ["Glass"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Glass.lua",
-    ["Quarantine"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Quarantine.lua",
-    ["Fog"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Fog.lua",
-    ["Limitation"]          = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Limitation.lua",
-    ["Flying Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Flying.lua",
-    ["Jailed Towers"]       = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Jailed.lua",
-    ["Exploding Enemies"]   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Exploading.lua",
-    ["Inflation"]           = "Placeholder",
-    ["Committed"]           = "Placeholder",
-    ["Hidden Enemies"]      = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
-    ["Broke"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Brokes.lua",
-    ["Healthy Enemies"]     = "Placeholder"
+    ["Speedy Enemies"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Speedy.lua",
+    ["Glass"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Glass.lua",
+    ["Quarantine"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Quarantine.lua",
+    ["Fog"]                   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Fog.lua",
+    ["Limitation"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Limitation.lua",
+    ["Flying Enemies"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Flying.lua",
+    ["Jailed Towers"]         = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Jailed.lua",
+    ["Exploding Enemies"]     = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Exploading.lua",
+    ["Inflation"]             = "Placeholder",
+    ["Committed"]             = "Placeholder",
+    ["Hidden Enemies"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
+    ["Broke"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Brokes.lua",
+    ["Healthy Enemies"]       = "Placeholder"
 }
 
-local function getAvailableTrials()
+local function getTrialModule()
     local url = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/main/Func/GetTrials.lua"
     
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
 
-    if success and result and type(result.GetTrials) == "function" then
-        return result.GetTrials()
+    if success and result and type(result) == "table" then
+        return result
     else
-        warn("[AutoTrials] Failed to load trial requirements via loadstring.")
-        return {}
+        warn("[AutoTrials] Failed to load trial module via loadstring.")
+        return nil
     end
+end
+
+local function getAvailableTrials()
+    local module = getTrialModule()
+    if module and type(module.GetTrials) == "function" then
+        return module.GetTrials()
+    end
+    return {}
+end
+
+local function GetMissingTower()
+    local module = getTrialModule()
+    if module and type(module.GetMissingTower) == "function" then
+        return module.GetMissingTower()
+    end
+    return {}
 end
 
 local function normalizeString(str)
@@ -187,5 +202,6 @@ local function RunAutoTrial()
 end
 
 return {
-    RunAutoTrial = RunAutoTrial
+    RunAutoTrial = RunAutoTrial,
+    GetMissingTower = GetMissingTower
 }
