@@ -20,7 +20,7 @@ end
 
 local trialConfigs = {
     ["Speedy Enemies"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
-    ["Glass"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = { ["1"] = 10 } },
+    ["Glass"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
     ["Quarantine"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
     ["Fog"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
     ["Limitation"] = { Level = 175, Towers = {"Gatling Gun"}, Skills = {} },
