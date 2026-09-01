@@ -1,8 +1,13 @@
-
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
+
 local player = players.LocalPlayer
+if not player then
+    -- Fallback if executed in a context without a LocalPlayer yet
+    player = players.PlayerAdded:Wait()
+end
+
 local playerGui = player:WaitForChild("PlayerGui", 5)
 
 local Function = {}
@@ -32,14 +37,25 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
     requiredTowers = requiredTowers or {}
     requiredSkillTree = requiredSkillTree or {}
 
+    -- Ensure we are always referencing the executing local player
+    local targetPlayer = players.LocalPlayer
+    if not targetPlayer then
+        return {
+            Success = false,
+            Title = "Execution Error",
+            Desc = "LocalPlayer could not be verified.",
+            StopAutoTrials = true
+        }
+    end
+
     local playerLevel = 1
     pcall(function()
-        if player:FindFirstChild("Level") and typeof(player.Level.Value) == "number" then
-            playerLevel = player.Level.Value
-        elseif player:GetAttribute("Level") then
-            playerLevel = player:GetAttribute("Level")
-        elseif player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Level") then
-            playerLevel = player.leaderstats.Level.Value
+        if targetPlayer:FindFirstChild("Level") and typeof(targetPlayer.Level.Value) == "number" then
+            playerLevel = targetPlayer.Level.Value
+        elseif targetPlayer:GetAttribute("Level") then
+            playerLevel = targetPlayer:GetAttribute("Level")
+        elseif targetPlayer:FindFirstChild("leaderstats") and targetPlayer.leaderstats:FindFirstChild("Level") then
+            playerLevel = targetPlayer.leaderstats.Level.Value
         else
             local clientDataModule = replicatedStorage.Packages.Net:FindFirstChild("ClientData") 
                 or (replicatedStorage:FindFirstChild("Modules") and replicatedStorage.Modules:FindFirstChild("ClientData"))
@@ -60,7 +76,7 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
         return {
             Success = false,
             Title = "Low Level!",
-            Desc = string.format("Required level %d, but you are level %d!", requiredLevel, playerLevel),
+            Desc = string.format("Required level %d, but you (%s) are level %d!", requiredLevel, targetPlayer.Name, playerLevel),
             StopAutoTrials = true
         }
     end
@@ -69,8 +85,9 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
     local categoryOrder = {"1scrolling", "2scrolling", "3scrolling", "4scrolling", "5scrolling", "6scrolling", "7scrolling"}
 
     pcall(function()
-        if playerGui then
-            local inventoryView = playerGui:FindFirstChild("ReactUniversalInventoryView")
+        local currentGui = targetPlayer:FindFirstChild("PlayerGui")
+        if currentGui then
+            local inventoryView = currentGui:FindFirstChild("ReactUniversalInventoryView")
             if inventoryView then
                 local container = inventoryView.Holder.windowFrame.towersInventoryFrame:FindFirstChild("towerContainer")
                 
@@ -79,10 +96,8 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
                         local scroller = container:FindFirstChild(scrollerName)
                         if scroller then
                             for _, towerFrame in ipairs(scroller:GetChildren()) do
-            
                                 table.insert(verifiedOwnedTowers, towerFrame.Name)
                                 
-    
                                 for _, child in ipairs(towerFrame:GetDescendants()) do
                                     if child:IsA("TextLabel") and child.Text ~= "" and not child.Text:match("^%d+$") then
                                         table.insert(verifiedOwnedTowers, child.Text)
@@ -95,6 +110,7 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
             end
         end
     end)
+
     local missingTowers = {}
     for _, reqTower in ipairs(requiredTowers) do
         local found = false
@@ -186,7 +202,9 @@ function Function.CheckData(requiredLevel, requiredTowers, requiredSkillTree)
     return {
         Success = true,
         Title = "Requirements Met!",
-        Desc = "Owned towers: " .. #verifiedOwnedTowers .. " | Total skill tree: " .. totalCurrentLevels .. "/" .. totalMaxLevels,
+        Desc = "User: " .. targetPlayer.Name .. " | Owned towers: " .. #verifiedOwnedTowers .. " | Total skill tree: " .. totalCurrentLevels .. "/" .. totalMaxLevels,
+        Username = targetPlayer.Name,
+        UserId = targetPlayer.UserId,
         Level = playerLevel,
         Towers = verifiedOwnedTowers,
         TowerCount = #verifiedOwnedTowers,
