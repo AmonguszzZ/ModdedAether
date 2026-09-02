@@ -1,10 +1,3 @@
-
---[[\
-    Module: AutoMedic
-    Description: Automated Tower Defense Simulator (TDS) Medic ability chaining system.
-    Author: Custom Refactor
---]]
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -12,6 +5,19 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local RemoteFunc = ReplicatedStorage:WaitForChild("RemoteFunction")
+
+local ipairs = ipairs
+local tonumber = tonumber
+local tostring = tostring
+local math_floor = math.floor
+local math_max = math.max
+local math_huge = math.huge
+local string_lower = string.lower
+local table_insert = table.insert
+local table_sort = table.sort
+local pcall = pcall
+local task_wait = task.wait
+local os_clock = os.clock
 
 local CONSTANTS = {
     ABILITY_ICON = "rbxassetid://231100685",
@@ -54,8 +60,7 @@ end
 
 local function GetMedicUpgradeLevel(medic)
     local replicator = GetTowerReplicator(medic)
-    if not replicator then return 0 end
-    return tonumber(replicator:GetAttribute("Upgrade")) or 0
+    return replicator and tonumber(replicator:GetAttribute("Upgrade")) or 0
 end
 
 local function FetchUberParameters(medic)
@@ -70,13 +75,11 @@ local function FetchMedicCapacity(medic)
     local replicator = GetTowerReplicator(medic)
     if not replicator then return 0 end
 
-    local capacity = tonumber(replicator:GetAttribute("TowersCanSelect"))
-    if capacity == nil then capacity = 1 end
-
-    return math.max(0, math.floor(capacity))
+    local capacity = tonumber(replicator:GetAttribute("TowersCanSelect")) or 1
+    return math_max(0, math_floor(capacity))
 end
 
-local function QueryAllTowers()
+local function QueryAllTowers(filterMedicsOnly)
     local towersFolder = Workspace:FindFirstChild("Towers")
     local compiledTowers = {}
 
@@ -85,37 +88,35 @@ local function QueryAllTowers()
     for _, tower in ipairs(towersFolder:GetChildren()) do
         local replicator = tower:FindFirstChild("TowerReplicator")
         if replicator and tower.Parent then
-            table.insert(compiledTowers, {
-                Instance = tower,
-                Name = replicator:GetAttribute("Name"),
-                CreatedAt = replicator:GetAttribute("CreatedAt") or math.huge,
-                OwnerId = replicator:GetAttribute("OwnerId"),
-                OwnerName = replicator:GetAttribute("OwnerName"),
-                UpgradeLevel = replicator:GetAttribute("Upgrade") or 0
-            })
+            local name = replicator:GetAttribute("Name")
+            if not filterMedicsOnly then
+                table_insert(compiledTowers, {
+                    Instance = tower,
+                    Name = name,
+                    CreatedAt = replicator:GetAttribute("CreatedAt") or math_huge,
+                    OwnerId = replicator:GetAttribute("OwnerId"),
+                    OwnerName = replicator:GetAttribute("OwnerName"),
+                    UpgradeLevel = replicator:GetAttribute("Upgrade") or 0
+                })
+            elseif name == "Medic" and CONSTANTS.UBER_DATA[tonumber(replicator:GetAttribute("Upgrade")) or 0] then
+                if ValidateInstance(tower) then
+                    table_insert(compiledTowers, tower)
+                end
+            end
         end
     end
 
-    table.sort(compiledTowers, function(first, second)
-        return first.CreatedAt < second.CreatedAt
-    end)
+    if not filterMedicsOnly then
+        table_sort(compiledTowers, function(first, second)
+            return first.CreatedAt < second.CreatedAt
+        end)
+    end
 
     return compiledTowers
 end
 
 local function FetchActiveMedics()
-    local activeMedics = {}
-    local towersFolder = Workspace:FindFirstChild("Towers")
-
-    if not towersFolder then return activeMedics end
-
-    for _, tower in ipairs(towersFolder:GetChildren()) do
-        if ValidateInstance(tower) and CheckIsMedic(tower) and IsAbilityUnlocked(tower) then
-            table.insert(activeMedics, tower)
-        end
-    end
-
-    return activeMedics
+    return QueryAllTowers(true)
 end
 
 local function ResolvePriorityTargets(medic)
@@ -127,38 +128,19 @@ local function ResolvePriorityTargets(medic)
         return selectedTargets
     end
 
-    local availableTowers = QueryAllTowers()
+    local availableTowers = QueryAllTowers(false)
 
-    local primaryTargetName = SessionState.PriorityList[1]
-    if primaryTargetName then
-        local normalizedPrimary = string.lower(primaryTargetName)
+    for _, tierName in ipairs(SessionState.PriorityList) do
+        if #selectedTargets >= maxCapacity then break end
+        local normalizedTier = string_lower(tierName)
+
         for _, towerData in ipairs(availableTowers) do
             if #selectedTargets >= maxCapacity then break end
 
-            if towerData.Instance ~= medic and not CheckIsMedic(towerData.Instance) and not trackedRegistry[towerData.Instance] then
-                if string.lower(towerData.Name or "") == normalizedPrimary then
+            if towerData.Instance ~= medic and towerData.Name ~= "Medic" and not trackedRegistry[towerData.Instance] then
+                if string_lower(towerData.Name or "") == normalizedTier then
                     trackedRegistry[towerData.Instance] = true
-                    table.insert(selectedTargets, towerData.Instance)
-                end
-            end
-        end
-    end
-
-    if #selectedTargets < maxCapacity then
-        for tierIndex = 2, #SessionState.PriorityList do
-            if #selectedTargets >= maxCapacity then break end
-
-            local fallbackName = SessionState.PriorityList[tierIndex]
-            local normalizedFallback = string.lower(fallbackName)
-
-            for _, towerData in ipairs(availableTowers) do
-                if #selectedTargets >= maxCapacity then break end
-
-                if towerData.Instance ~= medic and not CheckIsMedic(towerData.Instance) and not trackedRegistry[towerData.Instance] then
-                    if string.lower(towerData.Name or "") == normalizedFallback then
-                        trackedRegistry[towerData.Instance] = true
-                        table.insert(selectedTargets, towerData.Instance)
-                    end
+                    table_insert(selectedTargets, towerData.Instance)
                 end
             end
         end
@@ -186,7 +168,7 @@ local function SynchronizeTargets(medic, targets)
         if not ValidateInstance(medic) then break end
         if ValidateInstance(target) then
             DispatchToggleRequest(medic, target)
-            task.wait()
+            task_wait()
         end
     end
 end
@@ -222,8 +204,7 @@ end
 
 local function ExtractDamageBuff(target)
     local replicator = GetTowerReplicator(target)
-    if not replicator then return 0 end
-    return tonumber(replicator:GetAttribute("DamageBuff")) or 0
+    return replicator and tonumber(replicator:GetAttribute("DamageBuff")) or 0
 end
 
 local function CaptureBaselineBuffs(targets)
@@ -246,7 +227,7 @@ local function YieldUntilReady(medic, token)
     while SessionState.Running and ValidateInstance(medic) do
         if SessionState.VersionToken ~= token then return false end
         if VerifyMedicReadiness() then return true end
-        task.wait(0.1)
+        task_wait(0.1)
     end
     return false
 end
@@ -269,9 +250,9 @@ local function FireUberchargePacket(medic)
 end
 
 local function MonitorUberActivation(medic, targets, baselineData, parameters, token)
-    local startTime = os.clock()
+    local startTime = os_clock()
 
-    while SessionState.Running and (os.clock() - startTime < 1.5) do
+    while SessionState.Running and (os_clock() - startTime < 1.5) do
         if SessionState.VersionToken ~= token then return false, false end
 
         local detectedBuffSignal = false
@@ -288,7 +269,7 @@ local function MonitorUberActivation(medic, targets, baselineData, parameters, t
         if not VerifyMedicReadiness() then return true, detectedBuffSignal end
         if detectedBuffSignal then return true, true end
 
-        task.wait(0.05)
+        task_wait(0.05)
     end
 
     return not VerifyMedicReadiness(), false
@@ -306,7 +287,7 @@ local function MonitorUberExpiration(targets, baselineData, parameters, activati
     end
 
     while SessionState.Running do
-        if os.clock() >= deadline then return end
+        if os_clock() >= deadline then return end
 
         local activePresenceFound = false
         local completeNormalization = true
@@ -330,7 +311,7 @@ local function MonitorUberExpiration(targets, baselineData, parameters, activati
         end
 
         if activePresenceFound and completeNormalization then return end
-        task.wait(0.05)
+        task_wait(0.05)
     end
 end
 
@@ -343,7 +324,7 @@ local function AttemptActivationSequence(medic, targets, token)
         if not YieldUntilReady(medic, token) then return false end
 
         local baselineBuffs = CaptureBaselineBuffs(targets)
-        local timestamp = os.clock()
+        local timestamp = os_clock()
         FireUberchargePacket(medic)
 
         local isStarted, signalObserved = MonitorUberActivation(medic, targets, baselineBuffs, uberParams, token)
@@ -352,7 +333,7 @@ local function AttemptActivationSequence(medic, targets, token)
         end
 
         if SessionState.VersionToken ~= token then return false end
-        task.wait(0.2)
+        task_wait(0.2)
     end
 
     return false
@@ -390,14 +371,14 @@ local function InitializeExecutionEngine()
     SessionState.ActiveThread = task.spawn(function()
         while SessionState.Running do
             if #SessionState.PriorityList == 0 then
-                task.wait(0.2)
+                task_wait(0.2)
                 continue
             end
 
             local availableMedics = FetchActiveMedics()
             if #availableMedics == 0 then
                 SessionState.CurrentMedicIndex = 1
-                task.wait(0.2)
+                task_wait(0.2)
                 continue
             end
 
@@ -410,9 +391,9 @@ local function InitializeExecutionEngine()
 
             local cycleSuccess = ExecuteMedicCycle(selectedMedic)
             if cycleSuccess then
-                task.wait()
+                task_wait()
             else
-                task.wait(0.05)
+                task_wait(0.05)
             end
         end
 
@@ -421,7 +402,7 @@ local function InitializeExecutionEngine()
 end
 
 function AutoMedicService.FetchAllTowers()
-    return QueryAllTowers()
+    return QueryAllTowers(false)
 end
 
 function AutoMedicService.Chaining()
@@ -435,5 +416,3 @@ function AutoMedicService.Chaining()
 end
 
 return AutoMedicService
-
--- TDS:WaitForWave(8) (11) (38)
