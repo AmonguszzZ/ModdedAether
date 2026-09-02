@@ -1,4 +1,8 @@
 
+getgenv().AutoMedic = true
+getgenv().AutoMercenary = true
+getgenv().AutoDJ  = true
+
 TDS:Loadout("Ace Pilot", "DJ Booth", "Mercenary Base", "Medic", "Gatling Gun")
 TDS:Mode("Trial")
 
@@ -26,6 +30,7 @@ TDS:VoteSkip(6)
 
 -- [ Wave 7 ] --
 TDS:VoteSkip(7)
+TDS:WaitForWave(8)
 TDS:Sell(1)
 
 -- [ Wave 8 ] --
