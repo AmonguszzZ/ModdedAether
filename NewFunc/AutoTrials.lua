@@ -7,7 +7,7 @@ local success, result = pcall(function()
 end)
 
 if not success then
-    warn("Failed to load script: " .. tostring(result))
+    warn("Failed to load scripts: " .. tostring(result))
 end
 
 local PlayerDataChecker = success and result or {
