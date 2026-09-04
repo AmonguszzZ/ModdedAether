@@ -70,7 +70,7 @@ local trialConfigs = {
     },
     ["Fog"] = { 
         Level = 175, 
-        Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booths"},
+        Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booth"},
         Golden = {},
         SkillTree = {} 
     },
