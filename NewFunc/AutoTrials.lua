@@ -2,20 +2,30 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = ReplicatedStorage or game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
-local success, fileContent = pcall(function()
-    return game:HttpGet("https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/NewFunc/PlayerDataHandler.lua")
+local success, result = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/NewFunc/PlayerDataHandler.lua"))()
 end)
 
-local PlayerDataChecker
-if success and fileContent then
-    local loadFunc, err = loadstring(fileContent)
-    if loadFunc then
-        PlayerDataChecker = loadFunc()
-    else
-        warn("[PlayerDataHandler] Compile error: " .. tostring(err))
+if not success then
+    warn("Failed to load script: " .. tostring(result))
+end
+
+local PlayerDataChecker = success and result or {
+    getStats = function()
+        return {
+            progression = { level = 0 },
+            ownedTowers = {},
+            evolvedProgression = {},
+            towers = {},
+            goldenTowersOwned = {},
+            skills = { unlockedSkills = {} }
+        }
     end
-else
-    warn("[PlayerDataHandler] Failed to fetch script from GitHub.")
+}
+
+if not success then
+    warn("[AutoTrials] Failed to load DataChecker.lua: " .. tostring(result))
+    warn("[AutoTrials] Using fallback data — requirement checks may be inaccurate.")
 end
 
 local TRIAL_PLACE_ID = 3260590327
@@ -35,7 +45,7 @@ local trialScripts = {
     ["Committed"]             = "String",
     ["Hidden Enemies"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
     ["Hidden"]                = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
-    ["Broke"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Brokes.lua",
+    ["Broke"]                 = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Broke.lua", -- no skill tree, no gold, no hardcore towers
     ["Healthy Enemies"]       = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Healthy.lua" -- no gold, no hardcore towers
 }
 
@@ -60,7 +70,7 @@ local trialConfigs = {
     },
     ["Fog"] = { 
         Level = 175, 
-        Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booth"},
+        Towers = {"Trapper", "Hacker", "Gatling Gun", "Mercenary Base", "DJ Booths"},
         Golden = {},
         SkillTree = {} 
     },
@@ -108,7 +118,7 @@ local trialConfigs = {
     },
     ["Broke"] = { 
         Level = 175, 
-        Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booth"},
+        Towers = {"Gatling Gun", "Militant", "Medic", "Trapper", "DJ Booth"},
         Golden = {},
         SkillTree = {} 
     },
@@ -365,7 +375,7 @@ function AutoTrials.Run()
 
         if not matchedOriginalName then
             local errStr = string.format("Trial '%s' has no configuration mapped.", tostring(currentTrial))
-            print("[AutoTrials] Restricted: " + errStr)
+            print("[AutoTrials] Restricted: " .. errStr)
             error(errStr)
         end
 
