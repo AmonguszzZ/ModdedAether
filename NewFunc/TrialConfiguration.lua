@@ -5,9 +5,9 @@
 return {
     trialScripts = {
         ["Speedy Enemies"]    = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Speedy.lua",
-        ["Glass"]             = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Glass.lua",
-        ["Quarantine"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Quarantine.lua",
-        ["Fog"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Fog.lua",
+        ["Glass"]             = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Glass.lua",
+        ["Quarantine"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Quarantine.lua",
+        ["Fog"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Fog.lua",
         ["Limitation"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Limitation.lua", -- done
         ["Flying"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Flying%20Enemies.lua", -- done
         ["Jailed"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Jailed.lua", -- done
