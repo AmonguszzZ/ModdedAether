@@ -1,3 +1,6 @@
+--!strict
+-- AutoTrialsRequirements.lua
+-- Static trial/fallback requirements and strategy script URLs.
 
 return {
     trialScripts = {
