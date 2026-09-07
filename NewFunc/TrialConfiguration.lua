@@ -14,7 +14,7 @@ return {
         ["Exploding Enemies"] = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Exploading%20Enemies.lua", -- done
         ["Inflation"]         = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Inflation.lua", -- done 
         ["Committed"]         = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Committed.lua", -- done
-        ["Hidden"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/Strats/Hidden.lua",
+        ["Hidden"]            = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Hidden%20Enemies.lua", -- done
         ["Broke"]             = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Broke.lua", -- done 
         ["Healthy Enemies"]   = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Healthy%20Enemies.lua", -- done
     },
@@ -105,7 +105,7 @@ return {
         },
         ["Hidden"] = {
             Level = 175,
-            Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booth", "Scouter"},
+            Towers = {"Gatling Gun", "Medic", "Mercenary Base", "Militant", "DJ Booth"}, -- no gold, no skill tree, no hardcore
             Golden = {},
             SkillTree = {},
         },
