@@ -4,7 +4,7 @@
 
 return {
     trialScripts = {
-        ["Speedy Enemies"]    = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Speedy.lua",
+        ["Speedy Enemies"]    = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Speedy.lua", -- done
         ["Glass"]             = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Glass.lua",
         ["Quarantine"]        = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Quarantine.lua",
         ["Fog"]               = "https://raw.githubusercontent.com/AmonguszzZ/ModdedAether/refs/heads/main/StratsFunc/Fog.lua",
@@ -31,7 +31,7 @@ return {
     trialConfigs = {
         ["Speedy Enemies"] = {
             Level = 175,
-            Towers = {"Hacker", "Gatling Gun", "Militant", "Mercenary Base", "Trapper"},
+            Towers = {"Tesla", "Gatling Gun", "Medic", "Mercenary Base", "Trapper"}, -- no skill tree, no gold, no hardcore
             Golden = {},
             SkillTree = {},
         },
