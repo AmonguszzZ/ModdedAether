@@ -7,9 +7,9 @@ getgenv().AutoGatling = true
 
 getgenv().AutoSkip = false
 getgenv().AutoReady = false
-getgenv().AutoRejoin = false
+getgenv().AutoRejoin = true
 getgenv().AutoRestart = false
-
+getgenv().Gatlify = false
 
 
 TDS:Loadout("DJ Booth", "Gatling Gun", "Medic", "Ace Pilot", "Trapper")
