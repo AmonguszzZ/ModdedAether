@@ -105,7 +105,7 @@ return {
         },
         ["Hidden"] = {
             Level = 175,
-            Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booth"},
+            Towers = {"Gatling Gun", "Hacker", "Mercenary Base", "Trapper", "DJ Booths"},
             Golden = {},
             SkillTree = {},
         },
