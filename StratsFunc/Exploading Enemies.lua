@@ -9,6 +9,7 @@ getgenv().AutoSkip = false
 getgenv().AutoReady = false
 getgenv().AutoRejoin = true
 getgenv().AutoRestart = false
+getgenv().Gatlify = false
 
 TDS:Loadout("DJ Booth", "Gatling Gun", "Militant", "Mercenary Base", "Medic")
 TDS:Mode("Trial")
