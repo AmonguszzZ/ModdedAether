@@ -1,5 +1,5 @@
 --!strict
--- GravityScript/PlayerDataHandler.luau
+-- PlayerDataHandler.luau
 -- Comprehensive Player Data, Economy, Progression, Inventory, Trials & Shop handler for Tower Defense Simulator.
 -- Per-user persistent cache hydration for multi-account safety in match places.
 
