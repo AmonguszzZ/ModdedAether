@@ -1,4 +1,4 @@
--- UILibrary.lua (Final Version with Tab Indicator Bar, Smooth Section Animations, and Comprehensive Component Tweens)
+-- UILibrary.lua (Updated: Removed manual scaling, added section background blocks, and optimized scrolling canvas boundaries)
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -17,55 +17,41 @@ function UILibrary:CreateWindow(config)
     local iconId = config.Icon or "rbxassetid://6031094678"
     local keybind = config.Keybind or Enum.KeyCode.RightShift
 
-    local targetParent = CoreGui
-    local success = pcall(function()
+    local targetParent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    pcall(function()
         for _, child in ipairs(targetParent:GetChildren()) do
             if child.Name == "UILibrary_Main" or child.Name == "UILibrary_Notifications" or child.Name == "UILibrary_FloatingIcon" then
                 child:Destroy()
             end
         end
     end)
-    
-    if not success then
-        targetParent = Players.LocalPlayer:WaitForChild("PlayerGui")
-        for _, child in ipairs(targetParent:GetChildren()) do
+    pcall(function()
+        for _, child in ipairs(CoreGui:GetChildren()) do
             if child.Name == "UILibrary_Main" or child.Name == "UILibrary_Notifications" or child.Name == "UILibrary_FloatingIcon" then
                 child:Destroy()
             end
         end
-    end
+    end)
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "UILibrary_Main"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    if typeof(protectgui) == "function" then
+        pcall(protectgui, ScreenGui)
+    elseif typeof(syn) == "table" and typeof((syn :: any).protect_gui) == "function" then
+        pcall((syn :: any).protect_gui, ScreenGui)
+    end
     ScreenGui.Parent = targetParent
-
-    local UIScale = Instance.new("UIScale")
-    UIScale.Parent = ScreenGui
-
-    local customScaleMultiplier = 1.0
-
-    local function updateScale()
-        local camera = workspace.CurrentCamera
-        local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
-        
-        local scaleX = viewportSize.X / 1280
-        local scaleY = viewportSize.Y / 720
-        local minScale = math.min(scaleX, scaleY)
-        
-        local baseCalculated = (viewportSize.X < 800) and math.clamp(minScale, 0.65, 0.85) or math.clamp(minScale, 0.85, 1.25)
-        UIScale.Scale = baseCalculated * customScaleMultiplier
-    end
-
-    if workspace.CurrentCamera then
-        workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
-        updateScale()
-    end
 
     local NotifGui = Instance.new("ScreenGui")
     NotifGui.Name = "UILibrary_Notifications"
     NotifGui.ResetOnSpawn = false
+    if typeof(protectgui) == "function" then
+        pcall(protectgui, NotifGui)
+    elseif typeof(syn) == "table" and typeof((syn :: any).protect_gui) == "function" then
+        pcall((syn :: any).protect_gui, NotifGui)
+    end
     NotifGui.Parent = targetParent
 
     local NotifHolder = Instance.new("Frame")
@@ -142,47 +128,6 @@ function UILibrary:CreateWindow(config)
     local BarCorner = Instance.new("UICorner")
     BarCorner.CornerRadius = UDim.new(1, 0)
     BarCorner.Parent = BottomGlowBar
-
-    -- Bottom-Right Corner Resize Handle
-    local ResizeButton = Instance.new("TextButton")
-    ResizeButton.Name = "ResizeButton"
-    ResizeButton.Size = UDim2.new(0, 20, 0, 20)
-    ResizeButton.Position = UDim2.new(1, -22, 1, -22)
-    ResizeButton.BackgroundTransparency = 1
-    ResizeButton.BorderSizePixel = 0
-    ResizeButton.ZIndex = 20
-    ResizeButton.Font = Enum.Font.GothamBold
-    ResizeButton.Text = "⋱"
-    ResizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ResizeButton.TextTransparency = 0.4
-    ResizeButton.TextSize = 14
-    ResizeButton.Parent = MainFrame
-
-    local resizing = false
-    local resizeStartPos, startScaleMultiplier
-
-    ResizeButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = true
-            resizeStartPos = input.Position
-            startScaleMultiplier = customScaleMultiplier
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    resizing = false
-                end
-            end)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - resizeStartPos
-            local change = (delta.X + delta.Y) * 0.0025
-            customScaleMultiplier = math.clamp(startScaleMultiplier + change, 0.4, 2.5)
-            updateScale()
-        end
-    end)
 
     local headerHeight = 54
     local Header = Instance.new("Frame")
@@ -279,6 +224,11 @@ function UILibrary:CreateWindow(config)
     FloatGui.Name = "UILibrary_FloatingIcon"
     FloatGui.ResetOnSpawn = false
     FloatGui.Enabled = false
+    if typeof(protectgui) == "function" then
+        pcall(protectgui, FloatGui)
+    elseif typeof(syn) == "table" and typeof((syn :: any).protect_gui) == "function" then
+        pcall((syn :: any).protect_gui, FloatGui)
+    end
     FloatGui.Parent = targetParent
 
     local FloatButton = Instance.new("TextButton")
@@ -413,12 +363,18 @@ function UILibrary:CreateWindow(config)
     TabContainer.BorderSizePixel = 0
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.ScrollBarThickness = 2
+    TabContainer.Active = true -- Fixed mobile scrolling support
+    TabContainer.ScrollingEnabled = true
     TabContainer.Parent = MainFrame
 
     local TabLayout = Instance.new("UIListLayout")
     TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabLayout.Padding = UDim.new(0, 6)
     TabLayout.Parent = TabContainer
+
+    TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 4)
+    end)
 
     ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
@@ -559,7 +515,6 @@ function UILibrary:CreateTab(config)
     TabCorner.CornerRadius = UDim.new(0, 7)
     TabCorner.Parent = TabButton
 
-    -- Left Indicator Line Bar
     local Indicator = Instance.new("Frame")
     Indicator.Name = "Indicator"
     Indicator.Size = UDim2.new(0, 3, 0, 0)
@@ -578,6 +533,8 @@ function UILibrary:CreateTab(config)
     TabContent.BorderSizePixel = 0
     TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContent.ScrollBarThickness = 3
+    TabContent.Active = true -- Fixed mobile scrolling support
+    TabContent.ScrollingEnabled = true
     TabContent.Visible = false
     TabContent.Parent = self.ContentContainer
 
@@ -587,7 +544,7 @@ function UILibrary:CreateTab(config)
     ContentLayout.Parent = TabContent
 
     ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 12)
+        TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 8)
     end)
 
     local function selectTab()
@@ -807,6 +764,7 @@ function TabMeta:Label(config)
     end
     return labelObj
 end
+
 function TabMeta:Image(config)
     config = config or {}
     local imageId = config.Image or "rbxassetid://0"
@@ -883,27 +841,35 @@ function TabMeta:Section(config)
     config = config or {}
     local title = config.Title or "Section"
 
+    local SectionFrame = Instance.new("Frame")
+    SectionFrame.Size = UDim2.new(1, 0, 0, 34)
+    SectionFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+    SectionFrame.BackgroundTransparency = 0.5
+    SectionFrame.BorderSizePixel = 0
+    SectionFrame.ClipsDescendants = true
+    SectionFrame.Parent = self.Container
+
+    local SectionCorner = Instance.new("UICorner")
+    SectionCorner.CornerRadius = UDim.new(0, 7)
+    SectionCorner.Parent = SectionFrame
+
     local SectionButton = Instance.new("TextButton")
-    SectionButton.Size = UDim2.new(1, 0, 0, 28)
-    SectionButton.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
-    SectionButton.BackgroundTransparency = 0.4
+    SectionButton.Size = UDim2.new(1, 0, 0, 34)
+    SectionButton.BackgroundTransparency = 1
     SectionButton.BorderSizePixel = 0
     SectionButton.Font = Enum.Font.GothamBold
     SectionButton.Text = "  ▼ " .. title
     SectionButton.TextColor3 = Color3.fromRGB(224, 242, 254)
     SectionButton.TextSize = 12
     SectionButton.TextXAlignment = Enum.TextXAlignment.Left
-    SectionButton.Parent = self.Container
-
-    local SectionCorner = Instance.new("UICorner")
-    SectionCorner.CornerRadius = UDim.new(0, 6)
-    SectionCorner.Parent = SectionButton
+    SectionButton.Parent = SectionFrame
 
     local ItemsContainer = Instance.new("Frame")
     ItemsContainer.Size = UDim2.new(1, 0, 0, 0)
+    ItemsContainer.Position = UDim2.new(0, 0, 0, 34)
     ItemsContainer.BackgroundTransparency = 1
     ItemsContainer.ClipsDescendants = true
-    ItemsContainer.Parent = self.Container
+    ItemsContainer.Parent = SectionFrame
 
     local ItemsLayout = Instance.new("UIListLayout")
     ItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -911,17 +877,28 @@ function TabMeta:Section(config)
     ItemsLayout.Parent = ItemsContainer
 
     local minimized = false
+
+    local function updateSectionSize()
+        if minimized then
+            TweenService:Create(SectionFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 34)}):Play()
+            TweenService:Create(ItemsContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+        else
+            local contentHeight = ItemsLayout.AbsoluteContentSize.Y
+            local targetH = 34 + contentHeight + 8
+            TweenService:Create(SectionFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetH)}):Play()
+            TweenService:Create(ItemsContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, contentHeight + 4)}):Play()
+        end
+    end
+
     SectionButton.MouseButton1Click:Connect(function()
         minimized = not minimized
         SectionButton.Text = (minimized and "  ▶ " or "  ▼ ") .. title
-        
-        local targetH = minimized and 0 or ItemsLayout.AbsoluteContentSize.Y + 6
-        TweenService:Create(ItemsContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetH)}):Play()
+        updateSectionSize()
     end)
 
     ItemsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         if not minimized then
-            ItemsContainer.Size = UDim2.new(1, 0, 0, ItemsLayout.AbsoluteContentSize.Y + 6)
+            updateSectionSize()
         end
     end)
 
@@ -1363,6 +1340,8 @@ function TabMeta:Dropdown(config)
     OptionsContainer.BackgroundColor3 = Color3.fromRGB(11, 17, 32)
     OptionsContainer.BorderSizePixel = 0
     OptionsContainer.ScrollBarThickness = 2
+    OptionsContainer.Active = true -- Fixed mobile scrolling support
+    OptionsContainer.ScrollingEnabled = true
     OptionsContainer.Visible = false
     OptionsContainer.ZIndex = 5
     OptionsContainer.Parent = DropdownFrame
