@@ -95,7 +95,7 @@ return {
                 ["Bandages"] = 25,
                 ["Accelerator"] = 25,
                 ["Enhanced Optics"] = 20,
-                ["Scavenger"] = 25,
+                ["Scavenger"] = 20,
 				["Improved Gunpowder"] = 25,
 				["Fight Dirty"] = 25,
 				["Precision"] = 15,
