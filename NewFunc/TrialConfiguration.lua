@@ -111,7 +111,7 @@ return {
         },
         ["Broke"] = {
             Level = 175,
-            Towers = {"Gatling Gun", "Trapper", "Militant", "Trapper", "DJ Booth"}, -- no gold, no skill tree, no hardcore
+            Towers = {"Gatling Gun", "Trapper", "Militant", "Trapper", "DJ Booth", "Assasin"}, -- no gold, no skill tree, no hardcore
             Golden = {},
             SkillTree = {},
         },
