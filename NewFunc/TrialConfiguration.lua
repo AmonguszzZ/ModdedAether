@@ -67,7 +67,7 @@ return {
         },
         ["Jailed"] = {
             Level = 175,
-            Towers = {"Scout", "Gatling Gun", "Militant", "Mercenary Base", "Paintballer", "Assasin", "DJ Booth", "Crook Boss"}, -- no gold, no skill tree, no hardcore, - higher winrate chance
+            Towers = {"Scout", "Gatling Gun", "Militant", "Mercenary Base", "Paintballer", "Assassin", "DJ Booth", "Crook Boss"}, -- no gold, no skill tree, no hardcore, - higher winrate chance
             Golden = {},
             SkillTree = {},
         },
