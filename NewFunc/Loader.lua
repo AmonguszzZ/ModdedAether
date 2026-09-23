@@ -357,7 +357,7 @@ end)
 local ok, err = pcall(function()
     loadstring(
         game:HttpGet(
-            "https://api.jnkie.com/api/v1/luascripts/public/a3f84aa0d6641c2f48324a86d9c77708b24a3465d7c3b905a22cc9cb589da47e/download"
+            "https://api.jnkie.com/api/v1/luascripts/public/ee4e394ef603cc18168300ca80927a7145d12dcf3474ed514db28297a4ee5633/download"
         )
     )()
 end)
